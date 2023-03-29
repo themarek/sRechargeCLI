@@ -81,7 +81,7 @@ object SRecharge {
             }
             val cookie = responseLogin.getCookie("tnm_api")
             println("API Key $cookie")
-            if (!cookie.contains("JSESSIONID")) {
+            if (cookie.isNotEmpty()) {
                 apiCookie = cookie
                 return
             }
@@ -96,7 +96,13 @@ object SRecharge {
         return Triple(formEmail, formPwd, formBool)
     }
 
-    fun HttpResponse.getCookie(name: String) = this.headers["Set-Cookie"]!!.replace(Regex("$name=([^;]+);.+"), "$1")
+    fun HttpResponse.getCookie(name: String): String {
+        val cookies = this.headers.entries()
+            .find{it.key=="set-cookie"}?.value?.filter { it.startsWith(name) }
+        if (!cookies.isNullOrEmpty())
+                return cookies[0].replace(Regex("$name=([^;]+);.+"), "$1")
+        return ""
+    }
 
     fun String.findText(textInLine: String, replace: String): String = this.split("\n")
         .find { it.indexOf(textInLine) >= 0 }!!
